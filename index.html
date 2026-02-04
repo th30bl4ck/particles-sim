@@ -155,24 +155,25 @@ function applyGasLaw(changed){
     if(changed === "pressure") tempEl.value = clamp((P()*lockedValue)/gasConstant,1,100);
     if(changed === "temp") pressEl.value = clamp((gasConstant*T())/lockedValue,1,100);
   }
-s
+
   if(lock === "temp"){
     tempEl.value = lockedValue; // freeze temp
     if(changed === "pressure") volEl.value = clamp((gasConstant*T())/P(),20,100);
     if(changed === "volume") pressEl.value = clamp((lockedValue*V())/gasConstant,1,100);
   }
 
-if(lock === "pressure"){
+  if(lock === "pressure"){
     pressEl.value = lockedValue; // freeze pressure
     if(changed === "volume") tempEl.value = clamp((lockedValue*V())/gasConstant, 1, 100);
     if(changed === "temp") volEl.value = clamp((gasConstant*T())/lockedValue, 20, 100);
-}
+  }
 }
 
 // ---------------- input handlers ----------------
-volEl.addEventListener("input", ()=>{ applyGasLaw("volume"); });
-tempEl.addEventListener("input", ()=>{ applyGasLaw("temp"); });
-pressEl.addEventListener("input", ()=>{ applyGasLaw("pressure"); });
+// Only apply changes if the slider is NOT locked
+volEl.addEventListener("input", ()=>{ if(lockEl.value !== "volume") applyGasLaw("volume"); });
+tempEl.addEventListener("input", ()=>{ if(lockEl.value !== "temp") applyGasLaw("temp"); });
+pressEl.addEventListener("input", ()=>{ if(lockEl.value !== "pressure") applyGasLaw("pressure"); });
 
 lockEl.addEventListener("change", ()=>{
   const lock = lockEl.value;
