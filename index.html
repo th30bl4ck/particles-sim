@@ -389,6 +389,9 @@ let lastFrameTime = null;
 const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
 const lerp = (a,b,t)=>a+(b-a)*t;
 const rand = (a,b)=>a+Math.random()*(b-a);
+const updateGasConstant = () => {
+  gasConstant = (P() * V()) / T();
+};
 
 // ---------------- gas law ----------------
 const P = ()=>Number(pressEl.value);
@@ -507,9 +510,18 @@ function applyGasLaw(changed){
 
 // ---------------- input handlers ----------------
 // Only apply changes if the slider is NOT locked
-volEl.addEventListener("input", ()=>{ if(lockEl.value !== "volume") applyGasLaw("volume"); });
-tempEl.addEventListener("input", ()=>{ if(lockEl.value !== "temp") applyGasLaw("temp"); });
-pressEl.addEventListener("input", ()=>{ if(lockEl.value !== "pressure") applyGasLaw("pressure"); });
+volEl.addEventListener("input", ()=>{
+  if(lockEl.value === "none") updateGasConstant();
+  if(lockEl.value !== "volume") applyGasLaw("volume");
+});
+tempEl.addEventListener("input", ()=>{
+  if(lockEl.value === "none") updateGasConstant();
+  if(lockEl.value !== "temp") applyGasLaw("temp");
+});
+pressEl.addEventListener("input", ()=>{
+  if(lockEl.value === "none") updateGasConstant();
+  if(lockEl.value !== "pressure") applyGasLaw("pressure");
+});
 
 lockEl.addEventListener("change", ()=>{
   const lock = lockEl.value;
@@ -517,12 +529,12 @@ lockEl.addEventListener("change", ()=>{
   lockEl.disabled = lock === "none";
   if(lock === "none"){
     lockedValue = null;
-    gasConstant = (P()*V())/T();
+    updateGasConstant();
   } else if(lock === "volume") lockedValue = V();
   else if(lock === "temp") lockedValue = T();
   else if(lock === "pressure") lockedValue = P();
 
-  gasConstant = (P()*V())/T();
+    updateGasConstant();
 });
 
 lockToggle.addEventListener("change", ()=>{
@@ -594,12 +606,13 @@ function step(){
     ctx.fillStyle = `hsl(210, 85%, ${lightness}%)`;
     ctx.fill();
   }
-
+  const displayConstant = lockEl.value === "none" ? (P() * V()) / T() : gasConstant;
   stats.innerHTML=
     `<div><span>Particles</span>${particles.length}</div>
      <div><span>Avg speed</span>${(avg/particles.length).toFixed(2)}</div>
      <div><span>Avg collisions/sec</span>${collisionsPerSecond.toFixed(1)}</div>
-     <div><span>P×V/T</span>${gasConstant.toFixed(2)}</div>`;
+     <div><span>P×V/T</span>${displayConstant.toFixed(2)}</div>`;
+
 
   volVal.textContent=V().toFixed(1);
   tempVal.textContent=T().toFixed(1);
