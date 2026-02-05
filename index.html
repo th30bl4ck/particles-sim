@@ -152,20 +152,62 @@ function applyGasLaw(changed){
 
   if(lock === "volume"){
     volEl.value = lockedValue; // freeze volume
-    if(changed === "pressure") tempEl.value = clamp((P()*lockedValue)/gasConstant,1,100);
-    if(changed === "temp") pressEl.value = clamp((gasConstant*T())/lockedValue,1,100);
+    if(changed === "pressure"){
+      const targetTemp = (P()*lockedValue)/gasConstant;
+      const clampedTemp = clamp(targetTemp,1,100);
+      tempEl.value = clampedTemp;
+      if(clampedTemp !== targetTemp){
+        pressEl.value = clamp((gasConstant*clampedTemp)/lockedValue,1,100);
+      }
+    }
+    if(changed === "temp"){
+      const targetPress = (gasConstant*T())/lockedValue;
+      const clampedPress = clamp(targetPress,1,100);
+      pressEl.value = clampedPress;
+      if(clampedPress !== targetPress){
+        tempEl.value = clamp((clampedPress*lockedValue)/gasConstant,1,100);
+      }
+    }
   }
 
   if(lock === "temp"){
     tempEl.value = lockedValue; // freeze temp
-    if(changed === "pressure") volEl.value = clamp((gasConstant*T())/P(),20,100);
-    if(changed === "volume") pressEl.value = clamp((lockedValue*V())/gasConstant,1,100);
+     if(changed === "pressure"){
+      const targetVol = (gasConstant*lockedValue)/P();
+      const clampedVol = clamp(targetVol,20,100);
+      volEl.value = clampedVol;
+      if(clampedVol !== targetVol){
+        pressEl.value = clamp((gasConstant*lockedValue)/clampedVol,1,100);
+      }
+    }
+    if(changed === "volume"){
+      const targetPress = (gasConstant*lockedValue)/V();
+      const clampedPress = clamp(targetPress,1,100);
+      pressEl.value = clampedPress;
+      if(clampedPress !== targetPress){
+        volEl.value = clamp((gasConstant*lockedValue)/clampedPress,20,100);
+      }
+    }
   }
 
   if(lock === "pressure"){
     pressEl.value = lockedValue; // freeze pressure
-    if(changed === "volume") tempEl.value = clamp((lockedValue*V())/gasConstant, 1, 100);
-    if(changed === "temp") volEl.value = clamp((gasConstant*T())/lockedValue, 20, 100);
+    if(changed === "volume"){
+      const targetTemp = (lockedValue*V())/gasConstant;
+      const clampedTemp = clamp(targetTemp, 1, 100);
+      tempEl.value = clampedTemp;
+      if(clampedTemp !== targetTemp){
+        volEl.value = clamp((gasConstant*clampedTemp)/lockedValue, 20, 100);
+      }
+    }
+    if(changed === "temp"){
+      const targetVol = (gasConstant*T())/lockedValue;
+      const clampedVol = clamp(targetVol, 20, 100);
+      volEl.value = clampedVol;
+      if(clampedVol !== targetVol){
+        tempEl.value = clamp((lockedValue*clampedVol)/gasConstant, 1, 100);
+      }
+    }
   }
 }
 
