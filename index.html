@@ -192,7 +192,8 @@ select:focus-visible { box-shadow: var(--focus); outline: none; }
 
 .stats {
   display:grid;
-  gap:10px;
+  gap:20px;
+  align-content: start;
 }
 .stats h3 {
   margin:0;
@@ -379,6 +380,10 @@ const maxParticles = 260;
 let particles = [];
 let gasConstant = (Number(pressEl.value)*Number(volEl.value))/Math.max(1,Number(tempEl.value));
 let lockedValue = null;
+let collisionsPerSecond = 0;
+let collisionAccumulator = 0;
+let timeAccumulator = 0;
+let lastFrameTime = null;
 
 // ---------------- utilities ----------------
 const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
@@ -414,6 +419,7 @@ function ensureParticles(){
 }
 
 function resolveCollisions(){
+   let collisions = 0;
   for(let i=0;i<particles.length;i++){
     for(let j=i+1;j<particles.length;j++){
       const a=particles[i],b=particles[j];
@@ -422,10 +428,15 @@ function resolveCollisions(){
         const d=Math.sqrt(d2),nx=dx/d,ny=dy/d,o=(md-d)*0.5;
         a.x-=nx*o; a.y-=ny*o; b.x+=nx*o; b.y+=ny*o;
         const rvx=b.vx-a.vx,rvy=b.vy-a.vy,vn=rvx*nx+rvy*ny;
-        if(vn<0){ const imp=-vn; a.vx-=imp*nx; a.vy-=imp*ny; b.vx+=imp*nx; b.vy+=imp*ny; }
+        if(vn<0){
+          const imp=-vn;
+          a.vx-=imp*nx; a.vy-=imp*ny; b.vx+=imp*nx; b.vy+=imp*ny;
+          collisions += 1;
+        }
       }
     }
   }
+  return collisions;
 }
 
 // ---------------- apply lock ----------------
@@ -532,6 +543,7 @@ function step(){
   const box=getBox();
   const speed=lerp(0.4,3.2,T()/100);
   const maxSpeed=8*speed;
+  let collisionsThisFrame = 0;
 
   for(let s=0;s<3;s++){
     for(const p of particles){
@@ -551,11 +563,25 @@ function step(){
 
       p.vx*=drag; p.vy*=drag;
     }
-    resolveCollisions();
+    collisionsThisFrame += resolveCollisions();
+  }
+
+  const now = performance.now();
+  if(lastFrameTime === null){
+    lastFrameTime = now;
+  }
+  const delta = now - lastFrameTime;
+  lastFrameTime = now;
+  timeAccumulator += delta;
+  collisionAccumulator += collisionsThisFrame;
+  if(timeAccumulator >= 1000){
+    collisionsPerSecond = collisionAccumulator / (timeAccumulator / 1000);
+    collisionAccumulator = 0;
+    timeAccumulator = 0;
   }
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.strokeStyle="rgba(255,255,255,.3)";
+  ctx.strokeStyle="rgba(186, 209, 255, 0.85)";
   ctx.strokeRect(box.l,box.t,box.r-box.l,box.b-box.t);
 
   let avg=0;
@@ -572,6 +598,7 @@ function step(){
   stats.innerHTML=
     `<div><span>Particles</span>${particles.length}</div>
      <div><span>Avg speed</span>${(avg/particles.length).toFixed(2)}</div>
+     <div><span>Avg collisions/sec</span>${collisionsPerSecond.toFixed(1)}</div>
      <div><span>P×V/T</span>${gasConstant.toFixed(2)}</div>`;
 
   volVal.textContent=V().toFixed(1);
