@@ -4,73 +4,352 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Gas Law Particle Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 
 <style>
+:root {
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --border: #e6e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #2f6fed;
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --radius: 16px;
+  --focus: 0 0 0 3px rgba(47, 111, 237, 0.28);
+}
+
+* { box-sizing: border-box; }
+
 body {
   margin:0;
-  background:#0b0c10;
-  color:#e8e8e8;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
-.wrap { max-width:1000px; margin:auto; padding:16px; }
-.top { display:flex; gap:12px; flex-wrap:wrap; }
+.wrap { max-width:1180px; margin:auto; padding:24px; }
+.layout { display:grid; grid-template-columns: 1fr; gap:18px; }
 .card {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius:16px;
-  padding:12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding:18px;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.controls { min-width:300px; display:grid; gap:10px; }
-.row {
+.card:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12); }
+
+.controls {
   display:grid;
-  grid-template-columns:90px 1fr 70px;
-  gap:8px;
+  gap:18px;
+}
+.controls-grid {
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:18px;
+}
+.control-group {
+  display:grid;
+  gap:10px;
+  padding:12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fbfcff;
+}
+.control-group label {
+  font-size:13px;
+  font-weight:600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.control-row {
+  display:grid;
+  grid-template-columns: 1fr auto;
+  gap:12px;
   align-items:center;
 }
-input[type=range] { width:100%; }
+
+.value-pill {
+  min-width:64px;
+  text-align:right;
+  font-weight:600;
+  color: var(--text);
+  background: #eef3ff;
+  border-radius: 10px;
+  padding:6px 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+input[type=range] {
+  width:100%;
+  appearance: none;
+  height:6px;
+  border-radius:999px;
+  background: linear-gradient(90deg, var(--accent), #9bbcff);
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  appearance: none;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background: var(--card);
+  border: 2px solid var(--accent);
+  box-shadow: 0 2px 8px rgba(47, 111, 237, 0.25);
+}
+input[type=range]::-moz-range-thumb {
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background: var(--card);
+  border: 2px solid var(--accent);
+  box-shadow: 0 2px 8px rgba(47, 111, 237, 0.25);
+}
+input[type=range]:focus-visible { box-shadow: var(--focus); }
+
+.controls-meta {
+  display:grid;
+  grid-template-columns: 1fr minmax(220px, 280px);
+  gap:16px;
+  align-items:center;
+}
+.lock-row {
+  display:grid;
+  gap:6px;
+}
+.lock-line {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.lock-toggle {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:600;
+}
+.hint {
+  font-size:13px;
+  color: var(--muted);
+}
+
+.toggle {
+  position: relative;
+  width:42px;
+  height:24px;
+  border-radius:999px;
+  background: #d8deeb;
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+.toggle::after {
+  content:"";
+  position:absolute;
+  top:3px;
+  left:3px;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:#ffffff;
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.switch input:checked + .toggle {
+  background: var(--accent);
+}
+.switch input:checked + .toggle::after {
+  transform: translateX(18px);
+}
+.switch input:focus-visible + .toggle {
+  box-shadow: var(--focus);
+}
+
 select {
-  grid-column: 2 / span 2;
-  background: rgba(255,255,255,0.08);
-  color:#e8e8e8;
-  border-radius:8px;
-  border:1px solid rgba(255,255,255,0.15);
-  padding:4px;
+  width:100%;
+  background: #ffffff;
+  color: var(--text);
+  border-radius: 12px;
+  border:1px solid var(--border);
+  padding:10px 12px;
+  font-weight:500;
+}
+select:disabled {
+  background: #f1f4fb;
+  color: #94a3b8;
+}
+select:focus-visible { box-shadow: var(--focus); outline: none; }
+
+.stats {
+  display:grid;
+  gap:10px;
+}
+.stats h3 {
+  margin:0;
+  font-size:14px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.stats .stat-list {
+  display:grid;
+  gap:8px;
+  font-weight:600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+.stats .stat-list span {
+  color: var(--muted);
+  font-weight:500;
+}
+.stats .stat-list div {
+  display:flex;
+  justify-content: space-between;
+  gap:12px;
+}
+
+.simulation {
+  display:grid;
+  gap:14px;
+}
+.simulation-header {
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.simulation-header h2 {
+  margin:0;
+  font-size:20px;
+  font-weight:700;
+}
+.badge-row {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.badge {
+  font-size:12px;
+  font-weight:600;
+  color: var(--accent);
+  background: #eef3ff;
+  padding:4px 8px;
+  border-radius: 999px;
+}
+
+.canvas-wrap {
+  padding:16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f7f9ff 100%);
 }
 canvas {
   width:100%;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,0.12);
+  border-radius:12px;
+  border:1px solid #e3e7f4;
+  background-image: radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.08) 1px, transparent 0);
+  background-size: 18px 18px;
 }
-.small { font-size:13px; opacity:.8; }
+
+@media (min-width: 960px) {
+  .layout { grid-template-columns: 280px 1fr; }
+  .controls { grid-column: 1 / -1; }
+}
+
+@media (max-width: 959px) {
+  .controls-grid { grid-template-columns: 1fr 1fr; }
+  .layout { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+  .controls-grid { grid-template-columns: 1fr; }
+  .controls-meta { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: 1fr; }
+  .value-pill { text-align:left; }
+}
 </style>
 </head>
 
 <body>
 <div class="wrap">
-  <div class="top">
-    <div class="card controls">
-      <div class="row"><div>Volume</div><input id="vol" type="range" min="20" max="100" value="70"><div id="volVal"></div></div>
-      <div class="row"><div>Temp</div><input id="temp" type="range" min="1" max="100" value="50"><div id="tempVal"></div></div>
-      <div class="row"><div>Pressure</div><input id="press" type="range" min="1" max="100" value="35"><div id="pressVal"></div></div>
+  <div class="layout">
+    <div class="card controls" aria-label="Simulation controls">
+      <div class="controls-grid">
+        <div class="control-group">
+          <label for="vol">Volume</label>
+          <div class="control-row">
+            <input id="vol" type="range" min="20" max="100" value="70" aria-label="Volume slider">
+            <div id="volVal" class="value-pill" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label for="temp">Temperature</label>
+          <div class="control-row">
+            <input id="temp" type="range" min="1" max="100" value="50" aria-label="Temperature slider">
+            <div id="tempVal" class="value-pill" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label for="press">Pressure</label>
+          <div class="control-row">
+            <input id="press" type="range" min="1" max="100" value="35" aria-label="Pressure slider">
+            <div id="pressVal" class="value-pill" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
 
-      <div>Lock</div>
-      <select id="lock">
-        <option value="none">None</option>
-        <option value="volume">Volume</option>
-        <option value="temp">Temperature</option>
-        <option value="pressure">Pressure</option>
-      </select>
-
-      <div class="small">Keeps <b>P × V / T</b> constant</div>
+      <div class="controls-meta">
+        <div class="lock-row">
+          <div class="lock-line">
+            <label class="lock-toggle switch">
+              <input id="lockToggle" type="checkbox" role="switch" aria-label="Toggle lock">
+              <span class="toggle" aria-hidden="true"></span>
+              Lock
+            </label>
+            <span class="hint">Keeps <b>P × V / T</b> constant</span>
+          </div>
+        </div>
+        <div>
+          <select id="lock" aria-label="Lock target">
+            <option value="none">None</option>
+            <option value="volume">Volume</option>
+            <option value="temp">Temperature</option>
+            <option value="pressure">Pressure</option>
+          </select>
+        </div>
+      </div>
     </div>
 
-    <div class="card">
-      <div id="stats"></div>
+    <div class="card stats">
+      <h3>Stats</h3>
+      <div id="stats" class="stat-list"></div>
     </div>
-  </div>
 
-  <div class="card" style="margin-top:12px">
-    <canvas id="c" width="900" height="560"></canvas>
+    <div class="card simulation">
+      <div class="simulation-header">
+        <h2>Simulation</h2>
+        <div class="badge-row" aria-label="Live values">
+          <span class="badge" id="badgeP">P: 0</span>
+          <span class="badge" id="badgeV">V: 0</span>
+          <span class="badge" id="badgeT">T: 0</span>
+        </div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="c" width="900" height="560"></canvas>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -82,11 +361,15 @@ const volEl = document.getElementById("vol");
 const tempEl = document.getElementById("temp");
 const pressEl = document.getElementById("press");
 const lockEl = document.getElementById("lock");
+const lockToggle = document.getElementById("lockToggle");
 
 const volVal = document.getElementById("volVal");
 const tempVal = document.getElementById("tempVal");
 const pressVal = document.getElementById("pressVal");
 const stats = document.getElementById("stats");
+const badgeP = document.getElementById("badgeP");
+const badgeV = document.getElementById("badgeV");
+const badgeT = document.getElementById("badgeT");
 
 const R = 4;
 const drag = 0.999;
@@ -219,6 +502,8 @@ pressEl.addEventListener("input", ()=>{ if(lockEl.value !== "pressure") applyGas
 
 lockEl.addEventListener("change", ()=>{
   const lock = lockEl.value;
+  lockToggle.checked = lock !== "none";
+  lockEl.disabled = lock === "none";
   if(lock === "none"){
     lockedValue = null;
     gasConstant = (P()*V())/T();
@@ -227,6 +512,17 @@ lockEl.addEventListener("change", ()=>{
   else if(lock === "pressure") lockedValue = P();
 
   gasConstant = (P()*V())/T();
+});
+
+lockToggle.addEventListener("change", ()=>{
+  if(lockToggle.checked){
+    if(lockEl.value === "none") lockEl.value = "temp";
+    lockEl.disabled = false;
+  } else {
+    lockEl.value = "none";
+    lockEl.disabled = true;
+  }
+  lockEl.dispatchEvent(new Event("change"));
 });
 
 // ---------------- loop ----------------
@@ -267,22 +563,28 @@ function step(){
     avg+=Math.hypot(p.vx,p.vy);
     ctx.beginPath();
     ctx.arc(p.x,p.y,R,0,Math.PI*2);
-    ctx.fillStyle="rgba(120,200,255,.9)";
+    const speedRatio = clamp(Math.hypot(p.vx,p.vy) / maxSpeed, 0, 1);
+    const lightness = lerp(70, 52, speedRatio);
+    ctx.fillStyle = `hsl(210, 85%, ${lightness}%)`;
     ctx.fill();
   }
 
   stats.innerHTML=
-    `Particles: ${particles.length}<br>
-     Avg speed: ${(avg/particles.length).toFixed(2)}<br>
-     P×V/T = ${gasConstant.toFixed(2)}`;
+    `<div><span>Particles</span>${particles.length}</div>
+     <div><span>Avg speed</span>${(avg/particles.length).toFixed(2)}</div>
+     <div><span>P×V/T</span>${gasConstant.toFixed(2)}</div>`;
 
   volVal.textContent=V().toFixed(1);
   tempVal.textContent=T().toFixed(1);
   pressVal.textContent=P().toFixed(1);
+  badgeP.textContent = `P: ${P().toFixed(1)}`;
+  badgeV.textContent = `V: ${V().toFixed(1)}`;
+  badgeT.textContent = `T: ${T().toFixed(1)}`;
 
   requestAnimationFrame(step);
 }
 
+lockEl.dispatchEvent(new Event("change"));
 step();
 </script>
 </body>
